@@ -9,6 +9,7 @@ const coldTemp = 15;
     const sessionId = '123456';
     const languageCode = 'en-US';
 
+    //Configuring credentials.
     const config = {
       credentials: {
         private_key: process.env.DIALOGFLOW_PRIVATE_KEY,
@@ -16,6 +17,7 @@ const coldTemp = 15;
       },
     };
 
+    //Configuring pusher credentials.
     const pusher = new Pusher({
       appId: process.env.PUSHER_APP_ID,
       key: process.env.PUSHER_APP_KEY,
@@ -24,10 +26,13 @@ const coldTemp = 15;
       encrypted: true,
     });
 
+    //Creating session.
     const sessionClient = new Dialogflow.SessionsClient(config);
 
+    //Creating session path.
     const sessionPath = sessionClient.sessionPath(projectId, sessionId);
 
+    //Processing message.
     const processMessage = message => {
       const request = {
         session: sessionPath,
@@ -39,6 +44,7 @@ const coldTemp = 15;
         },
       };
 
+      //Detecting from dialogflow.
       sessionClient
         .detectIntent(request)
         .then(responses => {
@@ -50,6 +56,7 @@ const coldTemp = 15;
 
             // fetch the temperature from openweather map
             return getWeatherInfo(city).then(temperature => {
+              //If's to determine if it is cold/hot/mild and giving clothes based on it.
                 if(temperature >= hotTemp){
                     return pusher.trigger('bot', 'bot-response', {
                         message: `The weather in ${city} is ${temperature}°C, you can wear summing clothes :)`,
@@ -67,6 +74,7 @@ const coldTemp = 15;
             });
           }
 
+          //Pushing response.
           return pusher.trigger('bot', 'bot-response', {
             message: result.fulfillmentText,
           });
